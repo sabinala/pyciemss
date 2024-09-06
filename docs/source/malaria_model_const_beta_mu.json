@@ -459,13 +459,13 @@
     },
     {
      "target": "Im",
-     "expression": "50",
-     "expression_mathml": "<cn>50</cn>"
+     "expression": "10",
+     "expression_mathml": "<cn>10</cn>"
     },
     {
      "target": "Eh",
-     "expression": "1250",
-     "expression_mathml": "<cn>1250</cn>"
+     "expression": "10",
+     "expression_mathml": "<cn>10</cn>"
     },
     {
      "target": "Ih",
@@ -734,12 +734,12 @@
     },
     {
      "id": "I0",
-     "value": 50.0,
+     "value": 5.0,
      "distribution": {
       "type": "StandardUniform1",
       "parameters": {
-       "minimum": 47.5,
-       "maximum": 52.5
+       "minimum": 4.75,
+       "maximum": 5.25
       }
      },
      "units": {
