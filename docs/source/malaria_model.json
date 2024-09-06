@@ -748,12 +748,12 @@
     },
     {
      "id": "I0",
-     "value": 220.0,
+     "value": 50.0,
      "distribution": {
       "type": "StandardUniform1",
       "parameters": {
-       "minimum": 209.0,
-       "maximum": 231.0
+       "minimum": 47.5,
+       "maximum": 52.5
       }
      },
      "units": {
