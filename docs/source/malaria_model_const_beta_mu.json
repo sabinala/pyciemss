@@ -367,8 +367,8 @@
    "rates": [
     {
      "target": "t1",
-     "expression": "Im*Sh*beta",
-     "expression_mathml": "<apply><times/><ci>Im</ci><ci>Sh</ci><ci>beta</ci></apply>"
+     "expression": "Im*Sh*beta*tr_mult",
+     "expression_mathml": "<apply><times/><ci>Im</ci><ci>Sh</ci><ci>beta</ci><ci>tr_mult</ci></apply>"
     },
     {
      "target": "t2",
@@ -427,8 +427,8 @@
     },
     {
      "target": "t13",
-     "expression": "Ih*Sm*kappai + Rh*Sm*kappar",
-     "expression_mathml": "<apply><plus/><apply><times/><ci>Ih</ci><ci>Sm</ci><ci>kappai</ci></apply><apply><times/><ci>Rh</ci><ci>Sm</ci><ci>kappar</ci></apply></apply>"
+     "expression": "Ih*Sm*kappai*tr_mult + Rh*Sm*kappar*tr_mult",
+     "expression_mathml": "<apply><plus/><apply><times/><ci>Ih</ci><ci>Sm</ci><ci>kappai</ci><ci>tr_mult</ci></apply><apply><times/><ci>Rh</ci><ci>Sm</ci><ci>kappar</ci><ci>tr_mult</ci></apply></apply>"
     },
     {
      "target": "t14",
@@ -515,6 +515,14 @@
      "units": {
       "expression": "1/day",
       "expression_mathml": "<apply><power/><ci>day</ci><cn>-1</cn></apply>"
+     }
+    },
+    {
+     "id": "tr_mult",
+     "value": 1.0,
+     "units": {
+      "expression": "1",
+      "expression_mathml": "<cn>1</cn>"
      }
     },
     {
