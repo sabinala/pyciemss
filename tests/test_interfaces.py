@@ -89,14 +89,16 @@ CALIBRATE_KWARGS = {
 
 
 @pytest.mark.parametrize("sample_method", SAMPLE_METHODS)
-@pytest.mark.parametrize("model_url", MODEL_URLS)
+@pytest.mark.parametrize("model", MODELS)
 @pytest.mark.parametrize("start_time", START_TIMES)
 @pytest.mark.parametrize("end_time", END_TIMES)
 @pytest.mark.parametrize("logging_step_size", LOGGING_STEP_SIZES)
 @pytest.mark.parametrize("num_samples", NUM_SAMPLES)
 def test_sample_no_interventions(
-    sample_method, model_url, start_time, end_time, logging_step_size, num_samples
+    sample_method, model, start_time, end_time, logging_step_size, num_samples
 ):
+    model_url = model.url
+
     with pyro.poutine.seed(rng_seed=0):
         result1 = sample_method(
             model_url, end_time, logging_step_size, num_samples, start_time=start_time
@@ -115,7 +117,8 @@ def test_sample_no_interventions(
         check_result_sizes(result, start_time, end_time, logging_step_size, num_samples)
 
     check_states_match(result1, result2)
-    check_states_match_in_all_but_values(result1, result3)
+    if model.has_distributional_parameters:
+        check_states_match_in_all_but_values(result1, result3)
 
     if sample_method.__name__ == "dummy_ensemble_sample":
         assert "total_state" in result1.keys()
@@ -563,6 +566,18 @@ def test_output_format(
 def test_optimize(model_fixture, start_time, end_time, num_samples):
     logging_step_size = 1.0
     model_url = model_fixture.url
+
+    class TestProgressHook:
+        def __init__(self):
+            self.result_x = []
+
+        def __call__(self, x):
+            # Log the iteration number
+            self.result_x.append(x)
+            print(f"Result: {self.result_x}")
+
+    progress_hook = TestProgressHook()
+
     optimize_kwargs = {
         **model_fixture.optimize_kwargs,
         "solver_method": "euler",
@@ -571,6 +586,7 @@ def test_optimize(model_fixture, start_time, end_time, num_samples):
         "n_samples_ouu": int(2),
         "maxiter": 1,
         "maxfeval": 2,
+        "progress_hook": progress_hook,
     }
     bounds_interventions = optimize_kwargs["bounds_interventions"]
     opt_result = optimize(
@@ -584,23 +600,21 @@ def test_optimize(model_fixture, start_time, end_time, num_samples):
         assert bounds_interventions[0][i] <= opt_policy[i]
         assert opt_policy[i] <= bounds_interventions[1][i]
 
+    opt_intervention_temp = optimize_kwargs["static_parameter_interventions"](
+        opt_result["policy"]
+    )
     if "fixed_static_parameter_interventions" in optimize_kwargs:
         intervention_list = [
             deepcopy(optimize_kwargs["fixed_static_parameter_interventions"])
         ]
         intervention_list.extend(
-            [optimize_kwargs["static_parameter_interventions"](opt_result["policy"])]
-            if not isinstance(
-                optimize_kwargs["static_parameter_interventions"](opt_result["policy"]),
-                list,
-            )
-            else optimize_kwargs["static_parameter_interventions"](opt_result["policy"])
+            [opt_intervention_temp]
+            if not isinstance(opt_intervention_temp, list)
+            else opt_intervention_temp
         )
         opt_intervention = combine_static_parameter_interventions(intervention_list)
     else:
-        opt_intervention = optimize_kwargs["static_parameter_interventions"](
-            opt_result["policy"]
-        )
+        opt_intervention = opt_intervention_temp
 
     result_opt = sample(
         model_url,
@@ -622,6 +636,10 @@ def test_optimize(model_fixture, start_time, end_time, num_samples):
     assert isinstance(intervened_result_subset, dict)
     check_result_sizes(
         intervened_result_subset, start_time, end_time, logging_step_size, num_samples
+    )
+
+    assert len(progress_hook.result_x) <= (
+        (optimize_kwargs["maxfeval"] + 1) * (optimize_kwargs["maxiter"] + 1)
     )
 
 
